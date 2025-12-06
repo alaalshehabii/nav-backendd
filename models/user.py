@@ -18,9 +18,6 @@ class UserModel(BaseModel):
     email = Column(String, nullable=False, unique=True)
     password_hash = Column(String, nullable=True)
 
-    # NEW: Relationship - a user can have multiple teas
-    teas = relationship('TeaModel', back_populates='user')
-
     def set_password(self, password: str):
         self.password_hash = pwd_context.hash(password)
 
@@ -31,7 +28,7 @@ class UserModel(BaseModel):
         payload = {
             "exp": datetime.now(timezone.utc) + timedelta(days=1),
             "iat": datetime.now(timezone.utc),
-            "sub": self.id,
+            "sub": str(self.id),
         }
 
         token = jwt.encode(payload, secret, algorithm="HS256")

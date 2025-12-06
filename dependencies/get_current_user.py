@@ -1,40 +1,45 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from models.user import UserModel
-from database import get_db
 import jwt
-from jwt import DecodeError, ExpiredSignatureError # We import specific exceptions to handle them explicitly
 from config.environment import secret
+from database import get_db
+from models.user import UserModel
 
-# We're using the HTTP Bearer scheme for the Authorization header
-http_bearer = HTTPBearer()
+security = HTTPBearer()
 
-# This function takes the database session and the JWT token from the request header
-def get_current_user(db: Session = Depends(get_db), token: str = Depends(http_bearer)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    token = credentials.credentials
 
     try:
-        # Decode the token using the secret key
-        payload = jwt.decode(token.credentials, secret, algorithms=["HS256"])
+        payload = jwt.decode(token, secret, algorithms=["HS256"])
+        user_id = payload.get("sub")
 
-        # Query the database to find the user with the ID from the token's payload
-        user = db.query(UserModel).filter(UserModel.id == payload.get("sub")).first()
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials"
+            )
 
-        # If no user is found, raise an HTTP 401 Unauthorized error
-        if not user:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                 detail="Invalid username or password")
+        user = db.query(UserModel).filter(UserModel.id == user_id).first()
 
-    # Handle decoding errors (invalid token)
-    except DecodeError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                             detail=f'Could not decode token: {str(e)}')
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found"
+            )
 
-    # Handle expired token errors
-    except ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                             detail='Token has expired')
-
-    # Return the user if the token is valid
-    return user
-
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired"
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
+        )

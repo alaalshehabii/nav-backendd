@@ -1,26 +1,19 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
-class UserSchema(BaseModel):
+class UserSignUp(BaseModel):
     username: str
-    email: str
+    email: EmailStr
     password: str
 
-    class Config:
-        orm_mode = True
+class UserSignIn(BaseModel):
+    email: EmailStr
+    password: str
 
-class UserResponseSchema(BaseModel):
+class UserSchema(BaseModel):
+    id: int
     username: str
-    email: str
-
-# New schema for user login (captures username and password during login)
-class UserLogin(BaseModel):
-    username: str  # Username provided by the user during login
-    password: str  # Plain text password provided by the user during login
-
-# New schema for the response (containing the JWT token and a success message)
-class UserToken(BaseModel):
-    token: str  # JWT token generated upon successful login
-    message: str  # Success message
+    email: EmailStr
 
     class Config:
-        orm_mode = True
+        orm_mode = True  # Allows Pydantic to work with SQLAlchemy models

@@ -1,44 +1,46 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from models.user import UserModel
-from serializers.user import UserSchema, UserLogin, UserToken # Add new serializers for login
 from database import get_db
+from models.user import UserModel
+from serializers.user import UserSignUp, UserSignIn
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserSchema)
-def create_user(user: UserSchema, db: Session = Depends(get_db)):
-    # Check if the username or email already exists
+@router.post("/users/signup")
+def sign_up(user: UserSignUp, db: Session = Depends(get_db)):
+    # Check if user already exists
     existing_user = db.query(UserModel).filter(
-        (UserModel.username == user.username) | (UserModel.email == user.email)
+        UserModel.email == user.email
     ).first()
 
     if existing_user:
-        raise HTTPException(status_code=400, detail="Username or email already exists")
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-    new_user = UserModel(username=user.username, email=user.email)
-    # Use the set_password method to hash the password
+    # Create new user
+    new_user = UserModel(
+        username=user.username,
+        email=user.email
+    )
     new_user.set_password(user.password)
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
-    return new_user
+    # Generate JWT token
+    token = new_user.generate_token()
+    return {"token": token}
 
+@router.post("/users/signin")
+def sign_in(credentials: UserSignIn, db: Session = Depends(get_db)):
+    # Find user
+    user = db.query(UserModel).filter(
+        UserModel.email == credentials.email
+    ).first()
 
-@router.post("/login", response_model=UserToken)
-def login(user: UserLogin, db: Session = Depends(get_db)):
-
-    # Find the user by username
-    db_user = db.query(UserModel).filter(UserModel.username == user.username).first()
-
-    # Check if the user exists and if the password is correct
-    if not db_user or not db_user.verify_password(user.password):
-        raise HTTPException(status_code=400, detail="Invalid username or password")
+    if not user or not user.verify_password(credentials.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     # Generate JWT token
-    token = db_user.generate_token()
-
-    # Return token and a success message
-    return {"token": token, "message": "Login successful"}
+    token = user.generate_token()
+    return {"token": token}
