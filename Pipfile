@@ -6,14 +6,14 @@ name = "pypi"
 [packages]
 fastapi = "*"
 uvicorn = "*"
-sqlalchemy = "*"
 psycopg2-binary = "*"
 bcrypt = "==4.0.0"
 passlib = {extras = ["bcrypt"], version = "*"}
 pyjwt = "*"
-python-dotenv = "*"
 alembic = "*"
 pydantic = {extras = ["email"], version = "*"}
+python-dotenv = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 
