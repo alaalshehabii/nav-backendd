@@ -1,15 +1,25 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from database import get_db
 from models.flight import Flight
+from schemas.flight import FlightCreate, FlightResponse
 
 router = APIRouter()
 
-flights: list[Flight] = []
+@router.get("/flights", response_model=list[FlightResponse])
+def get_flights(db: Session = Depends(get_db)):
+    return db.query(Flight).all()
 
-@router.get("/flights")
-def get_flights():
-    return flights
-
-@router.post("/flights")
-def add_flight(flight: Flight):
-    flights.append(flight)
-    return flight
+@router.post("/flights", response_model=FlightResponse)
+def create_flight(flight: FlightCreate, db: Session = Depends(get_db)):
+    new_flight = Flight(
+        flight_number=flight.flight_number,
+        origin=flight.origin,
+        destination=flight.destination,
+        status=flight.status
+    )
+    db.add(new_flight)
+    db.commit()
+    db.refresh(new_flight)
+    return new_flight

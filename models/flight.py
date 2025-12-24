@@ -1,8 +1,11 @@
-from pydantic import BaseModel
+from sqlalchemy import Column, Integer, String
+from database import Base
 
-class Flight(BaseModel):
-    id: int
-    flight_number: str
-    origin: str
-    destination: str
-    status: str
+class Flight(Base):
+    __tablename__ = "flights"
+
+    id = Column(Integer, primary_key=True, index=True)
+    flight_number = Column(String, index=True)
+    origin = Column(String)
+    destination = Column(String)
+    status = Column(String)
