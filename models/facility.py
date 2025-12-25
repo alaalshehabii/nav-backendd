@@ -5,7 +5,7 @@ class Facility(Base):
     __tablename__ = "facilities"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
+    name = Column(String)
     type = Column(String)
     terminal = Column(String)
     location_description = Column(String)

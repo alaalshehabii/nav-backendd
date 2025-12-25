@@ -6,34 +6,35 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 
-# Import models so tables get created
+
+from models.user import UserModel
 from models.flight import Flight
 from models.facility import Facility
 
-# Import routers
 from controllers.users import router as UsersRouter
 from controllers.flights import router as FlightsRouter
 from controllers.facilities import router as FacilitiesRouter
 
-# Create database tables
+# Create tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Register routers
 app.include_router(UsersRouter, prefix="/api")
 app.include_router(FlightsRouter, prefix="/api")
 app.include_router(FacilitiesRouter, prefix="/api")
 
 @app.get("/")
 def home():
-    return "Hello World!"
+    return {"message": "AirNav API running"}
