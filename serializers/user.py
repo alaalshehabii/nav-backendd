@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
 
 class UserSignUp(BaseModel):
     username: str
@@ -16,4 +15,4 @@ class UserSchema(BaseModel):
     email: EmailStr
 
     class Config:
-        orm_mode = True  # Allows Pydantic to work with SQLAlchemy models
+        from_attributes = True

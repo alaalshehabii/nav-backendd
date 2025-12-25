@@ -9,13 +9,11 @@ from dependencies.get_current_user import get_current_user
 
 router = APIRouter()
 
-
-
 # AUTH
 
 @router.post("/users/signup")
 def sign_up(user: UserSignUp, db: Session = Depends(get_db)):
-    # Check if user already exists
+    # Check if email already exists
     existing_user = db.query(UserModel).filter(
         UserModel.email == user.email
     ).first()
@@ -23,7 +21,7 @@ def sign_up(user: UserSignUp, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Admin rule
+    # Admin rule 
     is_admin = user.email == "admin@gmail.com"
 
     # Create new user
@@ -56,7 +54,7 @@ def sign_in(credentials: UserSignIn, db: Session = Depends(get_db)):
     return {"token": token}
 
 
-# USER CRUD (PROFILE)
+# USER PROFILE CRUD
 
 
 @router.put("/users/me")
@@ -65,15 +63,15 @@ def update_profile(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)
 ):
-    current_user.username = updated_user.username
-    current_user.email = updated_user.email
-
-    # prevent admin email change
+    # Prevent admin email change
     if current_user.is_admin and updated_user.email != "admin@gmail.com":
         raise HTTPException(
             status_code=400,
             detail="Admin email cannot be changed"
         )
+
+    current_user.username = updated_user.username
+    current_user.email = updated_user.email
 
     db.commit()
     db.refresh(current_user)
@@ -91,6 +89,13 @@ def delete_account(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_user)
 ):
+    # Prevent admin deletion
+    if current_user.is_admin:
+        raise HTTPException(
+            status_code=400,
+            detail="Admin account cannot be deleted"
+        )
+
     db.delete(current_user)
     db.commit()
 

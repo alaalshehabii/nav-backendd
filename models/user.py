@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy.orm import relationship
 from database import Base
 from passlib.context import CryptContext
 from datetime import datetime, timezone, timedelta
@@ -17,6 +18,13 @@ class UserModel(Base):
 
     is_admin = Column(Boolean, default=False)
 
+    # 🔗 relationship to "My Flights"
+    flights = relationship(
+        "UserFlight",
+        back_populates="user",
+        cascade="all, delete"
+    )
+
     def set_password(self, password: str):
         self.password_hash = pwd_context.hash(password)
 
@@ -28,7 +36,7 @@ class UserModel(Base):
             "sub": str(self.id),
             "username": self.username,
             "email": self.email,
-            "is_admin": self.is_admin,   # ✅ include admin flag
+            "is_admin": self.is_admin,
             "exp": datetime.now(timezone.utc) + timedelta(days=1),
             "iat": datetime.now(timezone.utc),
         }

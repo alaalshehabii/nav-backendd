@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 from database import Base
 
 class Flight(Base):
@@ -9,3 +10,10 @@ class Flight(Base):
     origin = Column(String)
     destination = Column(String)
     status = Column(String)
+
+    #  relationship to users
+    users = relationship(
+        "UserFlight",
+        back_populates="flight",
+        cascade="all, delete"
+    )
