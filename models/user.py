@@ -15,14 +15,12 @@ class UserModel(Base):
     username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     password_hash = Column(String, nullable=False)
-
     is_admin = Column(Boolean, default=False)
 
-    # 🔗 relationship to "My Flights"
-    flights = relationship(
+    saved_flights = relationship(
         "UserFlight",
-        back_populates="user",
-        cascade="all, delete"
+        cascade="all, delete",
+        backref="user"
     )
 
     def set_password(self, password: str):

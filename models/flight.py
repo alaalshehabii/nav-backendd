@@ -11,9 +11,8 @@ class Flight(Base):
     destination = Column(String)
     status = Column(String)
 
-    #  relationship to users
-    users = relationship(
+    saved_by = relationship(
         "UserFlight",
-        back_populates="flight",
-        cascade="all, delete"
+        cascade="all, delete",
+        backref="flight"
     )
