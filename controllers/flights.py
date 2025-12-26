@@ -10,17 +10,11 @@ from models.user import UserModel
 
 router = APIRouter(prefix="/flights", tags=["Flights"])
 
-# ---------------------------------------------------
-# GET ALL FLIGHTS (PUBLIC – NO AUTH REQUIRED)
-# ---------------------------------------------------
 @router.get("", response_model=list[FlightResponse])
 def get_flights(db: Session = Depends(get_db)):
     return db.query(Flight).all()
 
 
-# ---------------------------------------------------
-# CREATE FLIGHT (ADMIN ONLY)
-# ---------------------------------------------------
 @router.post("", response_model=FlightResponse)
 def create_flight(
     flight: FlightCreate,
@@ -44,9 +38,6 @@ def create_flight(
     return new_flight
 
 
-# ---------------------------------------------------
-# UPDATE FLIGHT (ADMIN ONLY)
-# ---------------------------------------------------
 @router.put("/{flight_id}", response_model=FlightResponse)
 def update_flight(
     flight_id: int,
@@ -73,9 +64,6 @@ def update_flight(
     return existing_flight
 
 
-# ---------------------------------------------------
-# DELETE FLIGHT (ADMIN ONLY)
-# ---------------------------------------------------
 @router.delete("/{flight_id}")
 def delete_flight(
     flight_id: int,

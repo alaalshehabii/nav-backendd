@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel
 
 # Shared fields
@@ -5,14 +6,13 @@ class FacilityBase(BaseModel):
     name: str
     type: str
     terminal: str
-    location_description: str
-    opening_hours: str
+    location_description: str  # e.g. "Near Gate A3"
 
-# For creating facility (NO id)
+# For creating facility
 class FacilityCreate(FacilityBase):
     pass
 
-# For responses (HAS id)
+# For responses
 class FacilityResponse(FacilityBase):
     id: int
 

@@ -21,7 +21,6 @@ def get_my_flights(
         .all()
     )
 
-    # safer + modern than .get()
     flight_ids = [s.flight_id for s in saved]
     if not flight_ids:
         return []

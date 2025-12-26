@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -7,12 +8,20 @@ from schemas.facility import FacilityCreate, FacilityResponse
 
 router = APIRouter()
 
-# READ all facilities
 @router.get("/facilities", response_model=list[FacilityResponse])
-def get_facilities(db: Session = Depends(get_db)):
-    return db.query(Facility).all()
+def get_facilities(
+    terminal: str | None = Query(None, description="Filter by terminal"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Facility)
 
-# CREATE facility
+    #  Nearby facilities = same terminal
+    if terminal:
+        query = query.filter(Facility.terminal == terminal)
+
+    return query.all()
+
+
 @router.post("/facilities", response_model=FacilityResponse)
 def create_facility(
     facility: FacilityCreate,
@@ -22,15 +31,15 @@ def create_facility(
         name=facility.name,
         type=facility.type,
         terminal=facility.terminal,
-        location_description=facility.location_description,
-        opening_hours=facility.opening_hours
+        location_description=facility.location_description
     )
+
     db.add(new_facility)
     db.commit()
     db.refresh(new_facility)
     return new_facility
 
-# UPDATE facility
+
 @router.put("/facilities/{facility_id}", response_model=FacilityResponse)
 def update_facility(
     facility_id: int,
@@ -46,13 +55,12 @@ def update_facility(
     facility.type = updated_facility.type
     facility.terminal = updated_facility.terminal
     facility.location_description = updated_facility.location_description
-    facility.opening_hours = updated_facility.opening_hours
 
     db.commit()
     db.refresh(facility)
     return facility
 
-# DELETE facility
+
 @router.delete("/facilities/{facility_id}")
 def delete_facility(facility_id: int, db: Session = Depends(get_db)):
     facility = db.query(Facility).filter(Facility.id == facility_id).first()
@@ -63,3 +71,4 @@ def delete_facility(facility_id: int, db: Session = Depends(get_db)):
     db.delete(facility)
     db.commit()
     return {"message": "Facility deleted successfully"}
+
