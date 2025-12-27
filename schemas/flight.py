@@ -1,17 +1,22 @@
-from pydantic import BaseModel
 
-# Shared fields
+from pydantic import BaseModel
+from datetime import date, time
+
 class FlightBase(BaseModel):
     flight_number: str
     origin: str
     destination: str
     status: str
 
-# Used when creating a flight (NO id)
+    flight_date: date
+    departure_time: time
+    arrival_time: time
+    terminal: str
+    gate: str
+
 class FlightCreate(FlightBase):
     pass
 
-# Used when returning data (HAS id)
 class FlightResponse(FlightBase):
     id: int
 

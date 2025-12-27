@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -10,11 +9,14 @@ from models.user import UserModel
 
 router = APIRouter(prefix="/flights", tags=["Flights"])
 
+
+# ================= GET ALL FLIGHTS =================
 @router.get("", response_model=list[FlightResponse])
 def get_flights(db: Session = Depends(get_db)):
     return db.query(Flight).all()
 
 
+# ================= CREATE FLIGHT (ADMIN ONLY) =================
 @router.post("", response_model=FlightResponse)
 def create_flight(
     flight: FlightCreate,
@@ -29,6 +31,12 @@ def create_flight(
         origin=flight.origin,
         destination=flight.destination,
         status=flight.status,
+
+        flight_date=flight.flight_date,
+        departure_time=flight.departure_time,
+        arrival_time=flight.arrival_time,
+        terminal=flight.terminal,
+        gate=flight.gate,
     )
 
     db.add(new_flight)
@@ -38,6 +46,7 @@ def create_flight(
     return new_flight
 
 
+# ================= UPDATE FLIGHT (ADMIN ONLY) =================
 @router.put("/{flight_id}", response_model=FlightResponse)
 def update_flight(
     flight_id: int,
@@ -58,12 +67,19 @@ def update_flight(
     existing_flight.destination = flight.destination
     existing_flight.status = flight.status
 
+    existing_flight.flight_date = flight.flight_date
+    existing_flight.departure_time = flight.departure_time
+    existing_flight.arrival_time = flight.arrival_time
+    existing_flight.terminal = flight.terminal
+    existing_flight.gate = flight.gate
+
     db.commit()
     db.refresh(existing_flight)
 
     return existing_flight
 
 
+# ================= DELETE FLIGHT (ADMIN ONLY) =================
 @router.delete("/{flight_id}")
 def delete_flight(
     flight_id: int,
